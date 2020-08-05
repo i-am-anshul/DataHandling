@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.anshul.datahandling.LOG_TAG
 import com.anshul.datahandling.R
 import com.anshul.datahandling.data.Monster
 
@@ -24,7 +25,7 @@ class MainFragment : Fragment() {
         val monster = Monster("Bob", "myfile", "a caption",
                 "a description", .19, 3)
 
-        Log.i("monsterLogging", monster.toString())
+        Log.i(LOG_TAG, monster.toString())
 
         return inflater.inflate(R.layout.main_fragment, container, false)
     }
