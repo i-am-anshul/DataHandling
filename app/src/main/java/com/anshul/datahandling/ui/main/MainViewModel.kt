@@ -15,19 +15,6 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
 
-    private val dataRepo = MonsterRepo()
-    init {
-//        val text = FileHelper.getTextFromResources(app, R.raw.monster_data)
-
-        val monsterData = dataRepo.getMonsterData(app)
-
-        for (monster in monsterData) {
-            Log.i(
-                    LOG_TAG,
-                    "${monster.name} (\$${monster.price})")
-        }
-    }
-
-
-
+    private val dataRepo = MonsterRepo(app)
+    val monsterData = dataRepo.monsterData
 }
