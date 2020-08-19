@@ -32,7 +32,8 @@ class MainFragment : Fragment() {
         viewModel.monsterData.observe(viewLifecycleOwner, Observer {
             for (monster in it) {
 
-                   monsterNames.append( "${monster.name} (\$${monster.price}) \n")
+                //Log.e(LOG_TAG, monster.toString() )
+                monsterNames.append("${monster.monsterName} (\$${monster.price}) \n")
             }
 
             message.text = monsterNames
