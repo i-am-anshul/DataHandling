@@ -1,6 +1,8 @@
 package com.anshul.datahandling.utilities
 
+import android.app.Application
 import android.content.Context
+import java.io.File
 
 class FileHelper {
     companion object{
@@ -20,6 +22,19 @@ class FileHelper {
 
                 }
             }
+        }
+
+        fun saveTextToFile(app: Application, json: String?) {
+            //val file = File(app.filesDir,"monster.json")
+            val file = File(app.cacheDir,"monster.json")
+            file.writeText(json ?: "", Charsets.UTF_8)
+        }
+
+        fun readTextFromFile(app: Application): String?{
+            val file = File(app.cacheDir,"monster.json")
+            return if (file.exists()){
+                file.readText()
+            } else null
         }
     }
 }

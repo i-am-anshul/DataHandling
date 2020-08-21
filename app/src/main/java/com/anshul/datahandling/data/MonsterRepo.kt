@@ -3,9 +3,13 @@ package com.anshul.datahandling.data
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
+import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
+import com.anshul.datahandling.LOG_TAG
 import com.anshul.datahandling.WEB_SERVICE_URL
+import com.anshul.datahandling.utilities.FileHelper
+import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +27,14 @@ class MonsterRepo(val app: Application) {
     )
 
     init {
-        refreshData()
+        val data = readDataFromCache()
+        if(data.isEmpty()){
+            refreshDataFromWeb()
+            Log.e(LOG_TAG,"Data from web")
+        }else{
+            monsterData.value = data
+            Log.e(LOG_TAG,"Data from local")
+        }
 
     }
     @WorkerThread
@@ -38,6 +49,8 @@ class MonsterRepo(val app: Application) {
 
             val serviceData = service.getMonsterData().body() ?: emptyList()
             monsterData.postValue(serviceData)
+
+            saveDataToCache(serviceData)
         }
     }
 
@@ -62,9 +75,34 @@ class MonsterRepo(val app: Application) {
         return networkInfo?.isConnectedOrConnecting ?: false
     }
 
-    fun refreshData() {
+    fun refreshDataFromWeb() {
         CoroutineScope(Dispatchers.IO).launch {
             callWebService()
         }
     }
+
+    private fun saveDataToCache(monsterData: List<Monster>){
+        val moshi = Moshi.Builder().build()
+        val listType = Types.newParameterizedType(List::class.java, Monster::class.java)
+        val adapter: JsonAdapter<List<Monster>> = moshi.adapter(listType)
+        val json = adapter.toJson(monsterData)
+        FileHelper.saveTextToFile(app, json)
+    }
+
+    private fun readDataFromCache(): List<Monster>{
+        val json = FileHelper.readTextFromFile(app)
+        if(json == null){
+            return emptyList()
+        }else{
+            return getDataFromJson(json)
+        }
+    }
+
+    private fun getDataFromJson(json: String?): List<Monster> {
+        val moshi = Moshi.Builder().build()
+        val listType = Types.newParameterizedType(List::class.java, Monster::class.java)
+        val adapter: JsonAdapter<List<Monster>> = moshi.adapter(listType)
+        return adapter.fromJson(json) ?: emptyList()
+    }
+
 }
