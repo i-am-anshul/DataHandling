@@ -1,10 +1,13 @@
 package com.anshul.datahandling.data
 
+import android.Manifest
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.util.Log
 import androidx.annotation.WorkerThread
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import com.anshul.datahandling.LOG_TAG
 import com.anshul.datahandling.WEB_SERVICE_URL
@@ -20,7 +23,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MonsterRepo(val app: Application) {
 
-    val monsterData =  MutableLiveData<List<Monster>>()
+    val monsterData = MutableLiveData<List<Monster>>()
 
     private val listType = Types.newParameterizedType(
         List::class.java, Monster::class.java
@@ -28,18 +31,19 @@ class MonsterRepo(val app: Application) {
 
     init {
         val data = readDataFromCache()
-        if(data.isEmpty()){
+        if (data.isEmpty()) {
             refreshDataFromWeb()
-            Log.e(LOG_TAG,"Data from web")
-        }else{
+            Log.e(LOG_TAG, "Data from web")
+        } else {
             monsterData.value = data
-            Log.e(LOG_TAG,"Data from local")
+            Log.e(LOG_TAG, "Data from local")
         }
 
     }
+
     @WorkerThread
-    suspend fun callWebService(){
-        if(checkNetworkAvailability()){
+    suspend fun callWebService() {
+        if (checkNetworkAvailability()) {
             val retrofit = Retrofit.Builder()
                 .baseUrl(WEB_SERVICE_URL)
                 .addConverterFactory(MoshiConverterFactory.create())
@@ -69,7 +73,7 @@ class MonsterRepo(val app: Application) {
 
     fun checkNetworkAvailability(): Boolean {
         val connectivityManager = app.getSystemService(Context.CONNECTIVITY_SERVICE)
-            as ConnectivityManager
+                as ConnectivityManager
 
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo?.isConnectedOrConnecting ?: false
@@ -81,19 +85,33 @@ class MonsterRepo(val app: Application) {
         }
     }
 
-    private fun saveDataToCache(monsterData: List<Monster>){
-        val moshi = Moshi.Builder().build()
-        val listType = Types.newParameterizedType(List::class.java, Monster::class.java)
-        val adapter: JsonAdapter<List<Monster>> = moshi.adapter(listType)
-        val json = adapter.toJson(monsterData)
-        FileHelper.saveTextToFile(app, json)
+//    private fun saveDataToCache(monsterData: List<Monster>){
+//        val moshi = Moshi.Builder().build()
+//        val listType = Types.newParameterizedType(List::class.java, Monster::class.java)
+//        val adapter: JsonAdapter<List<Monster>> = moshi.adapter(listType)
+//        val json = adapter.toJson(monsterData)
+//        FileHelper.saveTextToFile(app, json)
+//    }
+
+    private fun saveDataToCache(monsterData: List<Monster>) {
+        if (
+            ContextCompat.checkSelfPermission(app, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            val moshi = Moshi.Builder().build()
+            val listType = Types.newParameterizedType(List::class.java, Monster::class.java)
+            val adapter: JsonAdapter<List<Monster>> = moshi.adapter(listType)
+            val json = adapter.toJson(monsterData)
+            FileHelper.saveTextToFile(app, json)
+        }
     }
 
-    private fun readDataFromCache(): List<Monster>{
+
+    private fun readDataFromCache(): List<Monster> {
         val json = FileHelper.readTextFromFile(app)
-        if(json == null){
+        if (json == null) {
             return emptyList()
-        }else{
+        } else {
             return getDataFromJson(json)
         }
     }

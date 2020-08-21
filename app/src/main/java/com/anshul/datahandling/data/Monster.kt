@@ -1,10 +1,14 @@
 package com.anshul.datahandling.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.anshul.datahandling.IMAGE_BASE_URL
 import com.squareup.moshi.Json
 
+//@Entity(tableName = "monsters")
 data class Monster (
-
+    //@PrimaryKey(autoGenerate = true)
+    val monsterId: Int,
     val monsterName: String,
     val imageFile: String,
     val caption: String,
