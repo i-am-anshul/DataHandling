@@ -23,9 +23,7 @@ class MonsterRepo(val app: Application) {
     )
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
-            callWebService()
-        }
+        refreshData()
 
     }
     @WorkerThread
@@ -62,5 +60,11 @@ class MonsterRepo(val app: Application) {
 
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo?.isConnectedOrConnecting ?: false
+    }
+
+    fun refreshData() {
+        CoroutineScope(Dispatchers.IO).launch {
+            callWebService()
+        }
     }
 }
