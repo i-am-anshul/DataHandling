@@ -7,9 +7,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
+import androidx.core.view.contains
 import androidx.recyclerview.widget.RecyclerView
 import com.anshul.datahandling.R
 import com.anshul.datahandling.data.Monster
+import com.anshul.datahandling.utilities.PrefsHelper
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.monster_grid_item.view.*
 
@@ -30,7 +32,15 @@ class MainRecyclerAdapter(val context: Context,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.monster_grid_item, parent, false)
+
+        val layoutStyle = PrefsHelper.getItemType(parent.context)
+        val layoutId = if (layoutStyle == "grid"){
+            R.layout.monster_grid_item
+        }else{
+            R.layout.monster_list_item
+        }
+
+        val view = inflater.inflate(layoutId, parent, false)
         return  ViewHolder(view)
     }
 
