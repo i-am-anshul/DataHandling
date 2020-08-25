@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 import com.anshul.datahandling.IMAGE_BASE_URL
 import com.squareup.moshi.Json
 
-//@Entity(tableName = "monsters")
+@Entity(tableName = "monsters")
 data class Monster (
-    //@PrimaryKey(autoGenerate = true)
+    @PrimaryKey(autoGenerate = true)
     val monsterId: Int,
     val monsterName: String,
     val imageFile: String,

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
@@ -18,6 +19,7 @@ import com.squareup.moshi.Types
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
@@ -25,18 +27,37 @@ class MonsterRepo(val app: Application) {
 
     val monsterData = MutableLiveData<List<Monster>>()
 
-    private val listType = Types.newParameterizedType(
-        List::class.java, Monster::class.java
-    )
+//    private val listType = Types.newParameterizedType(
+//        List::class.java, Monster::class.java
+//    )
+
+    private val monsterDao = MonsterDatabase.getDatabase(app).monsterDao()
 
     init {
-        val data = readDataFromCache()
-        if (data.isEmpty()) {
-            refreshDataFromWeb()
-            Log.e(LOG_TAG, "Data from web")
-        } else {
-            monsterData.value = data
-            Log.e(LOG_TAG, "Data from local")
+//        val data = readDataFromCache()
+//        if (data.isEmpty()) {
+//            refreshDataFromWeb()
+//            Log.e(LOG_TAG, "Data from web")
+//        } else {
+//            monsterData.value = data
+//            Log.e(LOG_TAG, "Data from local")
+//        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val data = monsterDao.getAll()
+            if (data.isEmpty()){
+                callWebService()
+                withContext(Dispatchers.Main){
+                    Toast.makeText(app,"from web service",Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }else{
+                monsterData.postValue(data)
+                withContext(Dispatchers.Main){
+                    Toast.makeText(app,"from local db",Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
         }
 
     }
@@ -54,7 +75,9 @@ class MonsterRepo(val app: Application) {
             val serviceData = service.getMonsterData().body() ?: emptyList()
             monsterData.postValue(serviceData)
 
-            saveDataToCache(serviceData)
+            //saveDataToCache(serviceData)
+            monsterDao.deleteAll()
+            monsterDao.insertMonsters(serviceData)
         }
     }
 
